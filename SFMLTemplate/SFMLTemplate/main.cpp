@@ -197,20 +197,9 @@ int main() {
 				}
 
 			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) ) {
-				
-				if (player.allowFire()) {
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && player.allowFire() ) {
+
 					isFiring = true;
-				}
-				/*
-				
-				Spawn bullet
-				set bullet direction
-				set bullet speed
-				move bullet below
-				
-				
-				*/
 
 			}
 
@@ -225,7 +214,7 @@ int main() {
 			}
 
 
-			
+			window.draw(backdrop);
 
 			//Moves the ship based on current speed. This allows the ship to move as if in space 
 			player.movePlayer(player.speed);
@@ -233,7 +222,7 @@ int main() {
 			//player.printPlayerPost();
 			
 			//Draws the ship every frame 
-			window.draw(backdrop);
+			
 			player.drawPlayer(window);
 			
 			

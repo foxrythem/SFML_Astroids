@@ -48,6 +48,24 @@ public:
 		
 	}
 
+	
+	void ScreenWrap(int screenBoarderX, int screenBoarderY) {
+		
+		playerX = pSprite.getPosition().x;
+		playerY = pSprite.getPosition().y;
+
+		//Set up screenWrap so if the player goes off screen they appear on the other side
+		if (playerX > screenBoarderX)
+			pSprite.setPosition(0, playerY);
+		if (playerY > screenBoarderY)
+			pSprite.setPosition(playerX, 0);
+		if (playerX < 0)
+			pSprite.setPosition(screenBoarderX, playerY);
+		if (playerY < 0)
+			pSprite.setPosition(playerX, screenBoarderY);
+
+	}
+
 	bool allowFire() {
 
 		if (abilityClock.getElapsedTime().asSeconds() > .5) {
@@ -57,22 +75,6 @@ public:
 		else
 			return false;
 
-
-	}
-
-
-	void ScreenWrap(int screenBoarderX, int screenBoarderY) {
-
-
-		//Set up screenWrap so if the player goes off screen they appear on the other side
-		if (playerX > screenBoarderX)
-			pSprite.setPosition(0, playerY);
-		else if (playerY > screenBoarderY)
-			pSprite.setPosition(playerX, 0);
-		else if (playerX < 0)
-			pSprite.setPosition(screenBoarderX, playerY);
-		else if (playerY < 0)
-			pSprite.setPosition(playerX, screenBoarderY);
 
 	}
 
