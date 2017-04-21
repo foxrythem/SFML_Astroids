@@ -7,17 +7,22 @@
 #include <cmath>
 #include <time.h>
 #include "astroid.h"
+#include "Player.h"
+#include "Bullet.h"
+#include <typeinfo>
 
 int randomNumX;
 int randomNumY;
 int randomNum;
+bool isFiring = false;
 
 using namespace std;
-void setPosistion(sf::CircleShape &shape, int x, int y);
+void setPosistionCircle(sf::CircleShape &shape, int x, int y);
 void ScreenWrap(sf::CircleShape &shape, int x, int y, int offscreen);
 float RandomFloat(float a, float b);
 
-void setPosistion(sf::CircleShape &shape, int x, int y) {
+
+void setPosistionCircle(sf::CircleShape &shape, int x, int y) {
 
 
 
@@ -51,6 +56,8 @@ void ScreenWrap(sf::CircleShape &shape, int x, int y, int offscreen) {
 }
 
 
+
+
 float RandomFloat(float a, float b) {
 	float random = ((float)rand()) / (float)RAND_MAX;
 	float diff = b - a;
@@ -65,15 +72,21 @@ float RandomFloat(float a, float b) {
 
 
 
+
+
 int main() {
+	cout << "LOADING..." << endl;
 
 	sf::Texture background;
 	sf::Texture shipTexture;
 	sf::Texture rockTexture;
+	sf::Texture bulletTexture;
 	if (!background.loadFromFile("background.jpg") || 
 		!shipTexture.loadFromFile("ShipTexture.png") ||
-		!rockTexture.loadFromFile("RockTexture.jpg")) {
-		//error
+		!rockTexture.loadFromFile("RockTexture.jpg") ||
+		!bulletTexture.loadFromFile("BulletTexture.png")) {
+		cout << "Can't Load Texture" << endl;
+		return -1;
 	}
 
 	sf::RectangleShape backdrop(sf::Vector2f(1280, 720));
@@ -83,22 +96,24 @@ int main() {
 	int numAstroids = 50;
 	double speed = 0;
 	int offscreen = 25;
+	int bulletSpeed = 10;
 	srand(time(NULL));
 
 	
-	sf::Clock clock;
+	sf::Clock deltaClock;
+	sf::Clock LifeSpan;
 	
 	Astroid listOfRocks[23];
 
+
+	//window render setting 
 	sf::ContextSettings settings;
 	settings.antialiasingLevel = 8;
-
-	
-
 	sf::RenderWindow window(sf::VideoMode(1280, 720), "Astroids", sf::Style::Default, settings);
+	window.setVerticalSyncEnabled(true);
+	window.setFramerateLimit(60);
 
-
-	// Sets up astroids
+	// Sets up and spawns astroids
 	for (int i = 0; i < 23; i++) {
 
 		int randSize = rand() % 50 + 25;
@@ -113,40 +128,27 @@ int main() {
 		listOfRocks[i].shape.setOutlineThickness(2);
 		listOfRocks[i].shape.setOutlineColor(sf::Color(0, 0, 0));
 
-		setPosistion(listOfRocks[i].shape, window.getSize().x, window.getSize().y);
+		setPosistionCircle(listOfRocks[i].shape, window.getSize().x, window.getSize().y);
 	
 	}
 
 
-	
-	
+	Player player(window.getSize().x / 2, window.getSize().y / 2);
+	player.setScale(1.2);
+	std::vector<Bullet> bulletVec;
 
 
-
-	
-	sf::CircleShape shape(50, 3);
-	shape.setTexture(&shipTexture);
-
-
-
-	//shape.setFillColor(sf::Color(100, 250, 50));
-	shape.setOrigin(50, 50);
-	shape.setPosition(window.getSize().x / 2, window.getSize().y / 2);
-	window.setVerticalSyncEnabled(true);
-	window.setFramerateLimit(60);
 	
 
 	#pragma region Update
 
 		while (window.isOpen())
 		{
-			sf::Time elapsed1 = clock.getElapsedTime();
+			
 			
 			//Close Window
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)){
-
 				window.close();
-
 			}
 
 			sf::Event event;
@@ -157,79 +159,96 @@ int main() {
 					window.close();
 			}
 
-
+			//clears the draw window every frame
 			window.clear();
 			
 
-
-			sf::Vector2f shapePosition = shape.getPosition();
 			sf::Vector2u windowSize = window.getSize();
-			float SpriteAngle = shape.getRotation();
-
-
-
-
-
-			//Convert current angle to radians
-			float angleRADS = (3.1415926536 / 180)*(shape.getRotation() - 90);
-
-			//Set x and y with roations
-			float forx = speed * cos(angleRADS);
-			float fory = speed * sin(angleRADS);
-
-
-
-		
-
 
 
 			//Set up keyboard input from player
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && shapePosition.x > 50 ) {
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)  ) {
 				//roates the ship counter clockwise
-				shape.rotate(-5);
+				player.roatePlayer(-5);
 
 			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && shapePosition.x < windowSize.x - 50 ) {
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)  ) {
 				//rotates ship clockwise
-				shape.rotate(5);
+				player.roatePlayer(5);
 
 			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && shapePosition.y > 50 ) {
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)  ) {
 				//increases speed to a max speed of 5 
-				if (speed < 5) {
-					speed += .05;
+				if (player.speed < 5) {
+					player.speed += .05;
 				}
-
-				
 			}
 			//This allows the ship to slowly reduce speed instead of stoping dead in its tracks
 			else {
-				if (speed > 0)
-					speed -= .02;
-			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && shapePosition.y < windowSize.y - 50) {
-				//Slows down ship 
-				if(speed > 0)
-					speed -= .05;
+				if (player.speed > 0) {
+					player.speed -= .02;
+				}
 
 			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) ) {
+				//Slows down ship 
+				if (player.speed > 0) {
+					player.speed -= .05;
+				}
+
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) ) {
+				
+				if (player.allowFire()) {
+					isFiring = true;
+				}
+				/*
+				
+				Spawn bullet
+				set bullet direction
+				set bullet speed
+				move bullet below
+				
+				
+				*/
+
+			}
+
 			
 			
-		
-			
+			if (isFiring) {
+				Bullet newBullet(10, bulletTexture);
+				newBullet.setPos(sf::Vector2f(player.getX(), player.getY()));
+				newBullet.setDirection(player.getDirection());
+				bulletVec.push_back(newBullet);
+				isFiring = false;
+			}
+
+
 			
 
 			//Moves the ship based on current speed. This allows the ship to move as if in space 
-			shape.move(forx, fory);
-			ScreenWrap(shape, windowSize.x, windowSize.y, offscreen);
-			
-			
-			
-			
+			player.movePlayer(player.speed);
+			player.ScreenWrap(windowSize.x, windowSize.y);
+			//player.printPlayerPost();
 			
 			//Draws the ship every frame 
 			window.draw(backdrop);
-			window.draw(shape);
+			player.drawPlayer(window);
+			
+			
+
+			for (int i = 0; i < bulletVec.size(); i++) {
+				bulletVec[i].draw(window);
+				bulletVec[i].fire(player.getDirection(), bulletSpeed);
+				if (bulletVec[i].isTimeEnd()) {
+					bulletVec.erase(bulletVec.begin()+i);
+				}
+				
+			}
+
+
+			//Moves Astroids in class direction 
 			for (int i = 0; i <23; i++) {
 				srand(time(NULL));
 				listOfRocks[i].shape.rotate(listOfRocks[i].roationSpeed);
@@ -237,10 +256,13 @@ int main() {
 				listOfRocks[i].shape.move(listOfRocks[i].randX * listOfRocks[i].speed, listOfRocks[i].randY*listOfRocks[i].speed);
 				window.draw(listOfRocks[i].shape);
 			}
-			
-			
+
 			//allows us to keep track of how much time goes on between each frame refresh
-			sf::Time elapsed = clock.restart();
+			sf::Time deltaTime = deltaClock.restart();
+			
+
+			
+			
 			window.display();
 		}
 		#pragma endregion Main Game play and logic goes here
