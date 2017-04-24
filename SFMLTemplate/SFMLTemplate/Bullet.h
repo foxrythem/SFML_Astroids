@@ -35,7 +35,7 @@ public:
 	}
 
 	int getRight() {
-		return bullet.getPosition().x;
+		return bullet.getPosition().x + bullet.getRadius();
 	}
 
 	int getLeft() {
@@ -47,7 +47,7 @@ public:
 	}
 
 	int getBottom() {
-		return bullet.getPosition().y;
+		return bullet.getPosition().y + bullet.getRadius();
 	}
 
 	void draw(sf::RenderWindow &window) {
@@ -65,6 +65,16 @@ public:
 		else
 			return false;
 	}
+
+	int getX() {
+		return bullet.getPosition().x;
+	}
+
+	int getY() {
+		return bullet.getPosition().y;
+	}
+
+
 
 	void ScreenWrap(int screenBoarderX, int screenBoarderY) {
 

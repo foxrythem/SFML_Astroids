@@ -238,12 +238,26 @@ int main() {
 
 
 			//Moves Astroids in class direction 
-			for (int i = 0; i <23; i++) {
+			for (int i = 0; i < 23; i++) {
 				srand(time(NULL));
 				listOfRocks[i].shape.rotate(listOfRocks[i].roationSpeed);
-				ScreenWrap(listOfRocks[i].shape, windowSize.x, windowSize.y, listOfRocks[i].size/2);
+				ScreenWrap(listOfRocks[i].shape, windowSize.x, windowSize.y, listOfRocks[i].size / 2);
 				listOfRocks[i].shape.move(listOfRocks[i].randX * listOfRocks[i].speed, listOfRocks[i].randY*listOfRocks[i].speed);
 				window.draw(listOfRocks[i].shape);
+				int distanceToPlayer = listOfRocks[i].checkDistance(player, listOfRocks[i]);
+				if (distanceToPlayer < listOfRocks[i].size + 10 && listOfRocks[i].isFarAway == true) {
+					cout << "Astroid number " << i << "is close to player" << endl;
+					listOfRocks[i].changeDirection(player, listOfRocks[i]);
+					listOfRocks[i].isFarAway = false;
+				}
+				else if(distanceToPlayer > listOfRocks[i].size + 11)
+				{
+					listOfRocks[i].isFarAway = true;
+				}
+				if(listOfRocks[i].speed >= 0.1)
+					listOfRocks[i].speed -= .05
+			
+
 			}
 
 			//allows us to keep track of how much time goes on between each frame refresh

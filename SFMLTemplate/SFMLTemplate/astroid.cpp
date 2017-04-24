@@ -40,4 +40,5 @@ Astroid::Astroid( int inputSize, int inputSides, float inputSpeed, int inputRoat
 	randX = iRandX;
 
 	randY = iRandY;
+	startSpeed = speed;
 }
