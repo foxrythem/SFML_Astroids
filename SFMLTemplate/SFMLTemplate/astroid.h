@@ -33,7 +33,7 @@ public:
 	float speed;
 	int randX;
 	int randY;
-	int startSpeed;
+	float startSpeed;
 
 	sf::CircleShape shape;
 
@@ -109,16 +109,54 @@ public:
 		float directionX = astroid.getX() - player.getX();
 		float directionY = astroid.getY() - player.getY();
 
-		 
-		cout << randX << endl;
-		cout << randY << endl;
+		randX = 1;
+		randY = 1;
+
+
+		if (player.getX() > astroid.getX())
+			randX = (-1) * abs(randX);
+		else
+			randX = abs(randX);
+		
+
+		if (player.getY() > astroid.getY())
+			randY = (-1) * abs(randY);
+		else
+			randY = abs(randY);
 	
-		randX = (-randX);
-		randY = (-randY);
+		
 
-		speed = 6;
+		speed = player.speed + (abs(astroid.speed) / 2);
+
+		cout << "astroid speed is: " << speed << endl;
+
+	}
+
+	void changeDirection(Astroid astroid1, Astroid astroid) {
+
+		float directionX = astroid.getX() - astroid1.getX();
+		float directionY = astroid.getY() - astroid1.getY();
+
+		randX = 1;
+		randY = 1;
 
 
+		if (astroid1.getX() > astroid.getX())
+			randX = (-1) * abs(randX);
+		else
+			randX = abs(randX);
+
+
+		if (astroid1.getY() > astroid.getY())
+			randY = (-1) * abs(randY);
+		else
+			randY = abs(randY);
+
+
+
+		speed = astroid1.speed + (abs(astroid.speed) / 2);
+
+		cout << "astroid speed is: " << speed << endl;
 
 	}
 

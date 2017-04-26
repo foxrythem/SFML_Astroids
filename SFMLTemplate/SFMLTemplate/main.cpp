@@ -11,6 +11,7 @@
 #include "Bullet.h"
 #include <typeinfo>
 
+int numberOfAstroids = 23;
 int randomNumX;
 int randomNumY;
 int randomNum;
@@ -103,7 +104,7 @@ int main() {
 	sf::Clock deltaClock;
 	sf::Clock LifeSpan;
 	
-	Astroid listOfRocks[23];
+	std::vector<Astroid> astroidVec;
 
 
 	//window render setting 
@@ -114,7 +115,7 @@ int main() {
 	window.setFramerateLimit(60);
 
 	// Sets up and spawns astroids
-	for (int i = 0; i < 23; i++) {
+	for (int i = 0; i < numberOfAstroids; i++) {
 
 		int randSize = rand() % 50 + 25;
 		float randSpeed = RandomFloat(0.1, .7);
@@ -123,12 +124,13 @@ int main() {
 		randomNumX = rand() % 10 + (-5);
 		randomNumY = rand() % 10 + (-5);
 
-		listOfRocks[i] = Astroid(randSize, randsides, randSpeed, randRoation, randomNumX, randomNumY);
-		listOfRocks[i].shape.setTexture(&rockTexture);
-		listOfRocks[i].shape.setOutlineThickness(2);
-		listOfRocks[i].shape.setOutlineColor(sf::Color(0, 0, 0));
+		Astroid newAstroid = Astroid(randSize, randsides, randSpeed, randRoation, randomNumX, randomNumY);
+		newAstroid.shape.setTexture(&rockTexture);
+		newAstroid.shape.setOutlineThickness(2);
+		newAstroid.shape.setOutlineColor(sf::Color(0, 0, 0));
 
-		setPosistionCircle(listOfRocks[i].shape, window.getSize().x, window.getSize().y);
+		setPosistionCircle(newAstroid.shape, window.getSize().x, window.getSize().y);
+		astroidVec.push_back(newAstroid);
 	
 	}
 
@@ -136,6 +138,7 @@ int main() {
 	Player player(window.getSize().x / 2, window.getSize().y / 2);
 	player.setScale(1.2);
 	std::vector<Bullet> bulletVec;
+	
 
 
 	
@@ -231,34 +234,54 @@ int main() {
 				bulletVec[i].draw(window);
 				bulletVec[i].fire(player.getDirection(), bulletSpeed);
 				if (bulletVec[i].isTimeEnd()) {
-					bulletVec.erase(bulletVec.begin()+i);
+					bulletVec.erase(bulletVec.begin() + i);
 				}
-				
+
 			}
 
 
+			
 			//Moves Astroids in class direction 
-			for (int i = 0; i < 23; i++) {
+			for (int i = 0; i < astroidVec.size(); i++) {
 				srand(time(NULL));
-				listOfRocks[i].shape.rotate(listOfRocks[i].roationSpeed);
-				ScreenWrap(listOfRocks[i].shape, windowSize.x, windowSize.y, listOfRocks[i].size / 2);
-				listOfRocks[i].shape.move(listOfRocks[i].randX * listOfRocks[i].speed, listOfRocks[i].randY*listOfRocks[i].speed);
-				window.draw(listOfRocks[i].shape);
-				int distanceToPlayer = listOfRocks[i].checkDistance(player, listOfRocks[i]);
-				if (distanceToPlayer < listOfRocks[i].size + 10 && listOfRocks[i].isFarAway == true) {
-					cout << "Astroid number " << i << "is close to player" << endl;
-					listOfRocks[i].changeDirection(player, listOfRocks[i]);
-					listOfRocks[i].isFarAway = false;
+				astroidVec[i].shape.rotate(astroidVec[i].roationSpeed);
+				ScreenWrap(astroidVec[i].shape, windowSize.x, windowSize.y, astroidVec[i].size / 2);
+				astroidVec[i].shape.move(astroidVec[i].randX * astroidVec[i].speed, astroidVec[i].randY*astroidVec[i].speed);
+				window.draw(astroidVec[i].shape);
+				int distanceToPlayer = astroidVec[i].checkDistance(player, astroidVec[i]);
+				
+				
+				//Collision check for player
+				if (distanceToPlayer < astroidVec[i].size + 10 && astroidVec[i].isFarAway == true) {
+					cout << "Astroid number " << i << " is close to player" << endl;
+					astroidVec[i].changeDirection(player, astroidVec[i]);
+					astroidVec[i].isFarAway = false;
 				}
-				else if(distanceToPlayer > listOfRocks[i].size + 11)
+				else if(distanceToPlayer > astroidVec[i].size + 11)
 				{
-					listOfRocks[i].isFarAway = true;
+					astroidVec[i].isFarAway = true;
 				}
-				if(listOfRocks[i].speed >= 0.1)
-					listOfRocks[i].speed -= .05
+				if (astroidVec[i].speed >= astroidVec[i].startSpeed)
+					astroidVec[i].speed -= .1;
 			
 
 			}
+
+			
+			//Collision Check for bullets
+			for (int i = 0; i < bulletVec.size(); i++) {
+				for (int j = 0; j < astroidVec.size(); j++) {
+					if (i < bulletVec.size()) {
+						int checkBulletDistance = astroidVec[j].checkDistance(bulletVec[i], astroidVec[j]);
+						if (checkBulletDistance < astroidVec[j].size + bulletVec[i].bulletSize) {
+							astroidVec.erase(astroidVec.begin() + j);
+							bulletVec.erase(bulletVec.begin() + i);
+						}
+					}
+				}
+			}
+
+
 
 			//allows us to keep track of how much time goes on between each frame refresh
 			sf::Time deltaTime = deltaClock.restart();

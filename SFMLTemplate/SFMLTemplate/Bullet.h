@@ -9,10 +9,11 @@ class Bullet {
 public:
 	
 	sf::Clock lifeClock;
-
+	int bulletSize;
 
 	Bullet(int size, sf::Texture &bulletTexture) {
 		bullet = sf::CircleShape(size);
+		bulletSize = size;
 		//bullet.setFillColor(sf::Color::Blue);
 		if (!pTexture.loadFromFile("BulletTexture.png")) {
 			cout << "Error\n";
