@@ -16,6 +16,7 @@ int randomNumX;
 int randomNumY;
 int randomNum;
 bool isFiring = false;
+bool isGameOver = false;
 
 using namespace std;
 void setPosistionCircle(sf::CircleShape &shape, int x, int y);
@@ -68,6 +69,43 @@ float RandomFloat(float a, float b) {
 
 
 
+void gameOver(sf::RenderWindow &window , Player player) {
+	
+	sf::Font font;
+	sf::Text gameOverText;
+	sf::Text playerScore;
+
+
+	gameOverText.setFont(font);
+	gameOverText.setCharacterSize(60);
+	gameOverText.setFillColor(sf::Color::White);
+	gameOverText.setStyle(sf::Text::Bold);
+
+	playerScore.setFont(font);
+	playerScore.setCharacterSize(60);
+	playerScore.setFillColor(sf::Color::White);
+	playerScore.setStyle(sf::Text::Bold);
+
+	
+	if (!font.loadFromFile("PressStart2P.ttf") ) {
+		cout << "Font unable to load" << endl;
+	}
+	
+	gameOverText.setString("Game Over");
+	playerScore.setString("Final Score: " + to_string(player.score));
+
+	gameOverText.setPosition((window.getSize().x / 2) - gameOverText.getLocalBounds().width/2, window.getSize().y / 2 - gameOverText.getLocalBounds().height / 2);
+
+	playerScore.setPosition((window.getSize().x / 2) - playerScore.getLocalBounds().width / 2, (window.getSize().y / 2) - (playerScore.getLocalBounds().height / 2) + gameOverText.getLocalBounds().height);
+
+	
+	window.draw(gameOverText);
+	window.draw(playerScore);
+
+}
+
+
+
 
 
 
@@ -77,6 +115,18 @@ float RandomFloat(float a, float b) {
 
 int main() {
 	cout << "LOADING..." << endl;
+
+	sf::Font font;
+	sf::Text score;
+	score.setFont(font);
+	score.setCharacterSize(24);
+	score.setFillColor(sf::Color::White);
+	score.setStyle(sf::Text::Bold);
+	score.setPosition(20, 20);
+
+	if (!font.loadFromFile("PressStart2P.ttf")) {
+		cout << "Font unable to load" << endl;
+	}
 
 	sf::Texture background;
 	sf::Texture shipTexture;
@@ -94,7 +144,6 @@ int main() {
 	backdrop.setTexture(&background);
 
 
-	int numAstroids = 50;
 	double speed = 0;
 	int offscreen = 25;
 	int bulletSpeed = 10;
@@ -256,6 +305,7 @@ int main() {
 					cout << "Astroid number " << i << " is close to player" << endl;
 					astroidVec[i].changeDirection(player, astroidVec[i]);
 					astroidVec[i].isFarAway = false;
+					player.score -= 100;
 				}
 				else if(distanceToPlayer > astroidVec[i].size + 11)
 				{
@@ -274,8 +324,10 @@ int main() {
 					if (i < bulletVec.size()) {
 						int checkBulletDistance = astroidVec[j].checkDistance(bulletVec[i], astroidVec[j]);
 						if (checkBulletDistance < astroidVec[j].size + bulletVec[i].bulletSize) {
+							player.score += 10 * astroidVec[j].size;
 							astroidVec.erase(astroidVec.begin() + j);
 							bulletVec.erase(bulletVec.begin() + i);
+							
 						}
 					}
 				}
@@ -286,8 +338,21 @@ int main() {
 			//allows us to keep track of how much time goes on between each frame refresh
 			sf::Time deltaTime = deltaClock.restart();
 			
+			score.setString("Score: " + to_string(player.score));
+			
+			
+			if (astroidVec.size() < 1) {
+				isGameOver = true;
+			}
+			else
+			{
+				window.draw(score);
+			}
 
 			
+			if (isGameOver) {
+				gameOver(window, player);
+			}
 			
 			window.display();
 		}

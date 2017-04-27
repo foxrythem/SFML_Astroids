@@ -8,6 +8,7 @@ using namespace std;
 class Player {
 public:
 	float speed = 0;
+	int score = 0;
 	
 
 

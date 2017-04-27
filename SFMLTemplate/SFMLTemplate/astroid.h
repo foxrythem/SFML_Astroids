@@ -156,7 +156,7 @@ public:
 
 		speed = astroid1.speed + (abs(astroid.speed) / 2);
 
-		cout << "astroid speed is: " << speed << endl;
+		
 
 	}
 
